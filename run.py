@@ -3,7 +3,7 @@ from model import *  # omit this in jupyter notebooks
 
 num_iterations = 10
 num_ants = 10
-num_food = 5
+num_food = 50
 width = 50
 height = 50
 
