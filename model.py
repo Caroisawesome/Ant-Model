@@ -57,8 +57,8 @@ class Food(Agent):
 
     def decrease_value(self):
         self.value = self.value - 1
-        if (self.value < 1):
-            self.model.space.remove_agent(self)
+        #if (self.value < 1):
+            #self.model.space.remove_agent(self)
 
 class Nest(Agent):
     def __init__(self, unique_id, model):
@@ -74,6 +74,7 @@ class World(Model):
         self.generate_nest()
         self.generate_ants()
         self.generate_food()
+        self.running = True
 
     def generate_ants(self):
         for i in range(1,self.num_agents):
