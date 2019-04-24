@@ -10,11 +10,30 @@ model_params = {
 }
 
 def draw(agent):
-    portrayal = {"Shape": "circle",
-                 "Filled": "true",
-                 "Layer": 0,
-                 "Color": "red",
-                 "r": 2}
+
+    agent_type = type(agent).__name__
+    portrayal = {}
+
+    if (agent_type == "Food"):
+        portrayal = {"Shape": "rect",
+                     "Filled": "true",
+                     "Layer": 0,
+                     "Color": "blue",
+                     "w": 1/50,
+                     "h": 1/50
+        }
+    elif (agent_type == "Ant"):
+        portrayal = {"Shape": "circle",
+                     "Filled": "true",
+                     "Layer": 1,
+                     "Color": "red",
+                     "r": 4}
+    elif (agent_type == "Nest"):
+        portrayal = {"Shape": "circle",
+                     "Filled": "true",
+                     "Layer": 2,
+                     "Color": "orange",
+                     "r": 8}
     return portrayal
 
 canvas = SimpleCanvas(draw, 500, 500)
