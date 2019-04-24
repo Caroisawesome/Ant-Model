@@ -22,7 +22,7 @@ class Ant(Agent):
             self.random_walk()
 
     def random_walk(self):
-        min = self.direction - (math.pi/4)
+        min = self.direction - (math.pi/3)
         r = np.random.rand()
         self.direction = (r * (math.pi/2)) + min
         dx = np.cos(self.direction)
@@ -45,6 +45,8 @@ class Ant(Agent):
                 # ant collides with a food item
                 self.food = 1
                 n.decrease_value()
+                if (n.get_value() < 1):
+                    self.model.space.remove_agent(n)
             elif (n.unique_id == 0):
                 self.food = 0
         pass
@@ -59,6 +61,9 @@ class Food(Agent):
         self.value = self.value - 1
         #if (self.value < 1):
             #self.model.space.remove_agent(self)
+
+    def get_value(self):
+        return self.value
 
 class Nest(Agent):
     def __init__(self, unique_id, model):

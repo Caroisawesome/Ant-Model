@@ -21,6 +21,8 @@ class SimpleCanvas(VisualizationElement):
     def render(self, model):
         space_state = []
         for obj in model.schedule.agents:
+            if (not obj.pos):
+                continue
             portrayal = self.portrayal_method(obj)
             x, y = obj.pos
             x = ((x - model.space.x_min) /
