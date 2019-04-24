@@ -47,6 +47,7 @@ class Ant(Agent):
                 n.decrease_value()
                 if (n.get_value() < 1):
                     self.model.space.remove_agent(n)
+                    self.model.decrease_food_count()
             elif (n.unique_id == 0):
                 self.food = 0
         pass
@@ -70,7 +71,7 @@ class Nest(Agent):
         super().__init__(unique_id, model)
 
 class World(Model):
-    def __init__(self, num_agents, num_food, width, height):
+    def __init__(self, num_agents, num_food, width, height, prob_pheromones, prob_drop_nest):
         self.center = (width/2, height/2)
         self.num_agents = num_agents
         self.num_food = num_food
@@ -101,5 +102,9 @@ class World(Model):
             self.schedule.add(f)
             self.space.place_agent(f, (x, y))
 
+    def decrease_food_count(self):
+        self.num_food = self.num_food - 1
+
     def step(self):
         self.schedule.step()
+        return self.num_food
