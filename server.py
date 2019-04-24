@@ -2,11 +2,16 @@ from mesa.visualization.ModularVisualization import ModularServer
 from model import World
 from SimpleContinuousModule import SimpleCanvas
 
+
+
+### MODEL PARAMETERS! update them here
 model_params = {
     "num_agents": 10,
     "num_food": 20,
     "width": 40,
-    "height": 40
+    "height": 40,
+    "prob_pheromones": 0.4,
+    "prob_drop_nest" :0.001
 }
 
 def draw(agent):
