@@ -4,6 +4,7 @@ from mesa.space import ContinuousSpace
 from Ant import Ant
 from food import Food
 from nest import Nest
+from pheromones import Pheromone
 import numpy as np
 import math
 import json
@@ -51,6 +52,11 @@ class World(Model):
             y = np.random.rand() * self.space.height
             self.schedule.add(f)
             self.space.place_agent(f, (x, y))
+
+    def generate_pheromones(self, pos):
+        p = Pheromone(self)
+        self.schedule.add(p)
+        self.space.place_agent(p, pos)
 
     def decrease_food_count(self):
         self.num_food = self.num_food - 1

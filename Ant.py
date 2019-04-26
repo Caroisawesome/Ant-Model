@@ -1,6 +1,7 @@
 from mesa import Agent, Model
 import numpy as np
 import math
+from pheromones import Pheromone
 
 class Ant(Agent):
     def __init__(self, unique_id, model):
@@ -42,6 +43,10 @@ class Ant(Agent):
             dx = Dx/dist
             dy = Dy/dist
             self.model.space.move_agent(self, (self.pos[0] + dx, self.pos[1] + dy))
+            if (self.drop_pheromone):
+                self.model.generate_pheromones(self.pos)
+        else:
+            print("dist is 0")
 
     def return_to_food(self):
         Dx = self.food_position[0] - self.pos[0]
@@ -59,6 +64,8 @@ class Ant(Agent):
         if (food.get_value() < 1):
             self.model.space.remove_agent(food)
             self.model.decrease_food_count()
+        if (np.random.rand() < self.model.prob_pheromones):
+            self.drop_pheromone = True
 
     # scan current location for food or nest
     def scan_area(self):
@@ -74,6 +81,7 @@ class Ant(Agent):
             elif (agent_type == "Nest"):
                 self.food = 0
                 self.remember_nest()
+                self.drop_pheromone = False
 
             # site fidelity, returned to location of food
             elif (self.food_position == self.pos):
@@ -92,8 +100,8 @@ class Ant(Agent):
                 self.remember_nest()
 
     def step(self):
-        self.move()
         self.scan_area()
+        self.move()
         self.randomly_generate_nest()
         pass
 
