@@ -1,5 +1,12 @@
 # Ant-Model
 
+First time setup:
+```
+pip install mesa
+pip install numpy
+pip install math
+```
+
 To run the simulation without visuals:
 ```
 cd Ant-Model
