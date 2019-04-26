@@ -8,8 +8,8 @@ from SimpleContinuousModule import SimpleCanvas
 model_params = {
     "num_agents": 10,
     "num_food": 20,
-    "width": 40,
-    "height": 40,
+    "width": 100,
+    "height": 80,
     "prob_pheromones": 0.4,
     "prob_create_nest" :0.005,
     "min_dist_between_nests": 15

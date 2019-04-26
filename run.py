@@ -5,8 +5,8 @@ from model import *
 num_iterations = 500
 num_ants = 50
 num_food = 100
-width = 50
-height = 50
+width = 100
+height = 80
 food_distribution = "random" # can be random, or power_law
 
 ## parameters for the ants

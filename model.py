@@ -14,6 +14,8 @@ class Ant(Agent):
         self.nest_location = (0,0)
         self.dx_from_nest = 0
         self.dy_from_nest = 0
+        self.drop_pheromone = False
+        self.food_position = False
 
     def set_nest_location(self, loc):
         self.nest_location = loc
@@ -21,6 +23,8 @@ class Ant(Agent):
     def move(self):
         if (self.food):
             self.return_to_nest()
+        elif (self.food_position and self.food == 0):
+            self.return_to_food()
         else:
             self.random_walk()
 
@@ -30,21 +34,30 @@ class Ant(Agent):
         self.direction = (r * (math.pi/2)) + min
         dx = np.cos(self.direction)
         dy = np.sin(self.direction)
-        self.model.space.move_agent(self, (self.pos[0] + dx, self.pos[1] + dy))
-        self.dy_from_nest += dx
-        self.dy_from_nest += dy
+        new_position = (self.pos[0] + dx, self.pos[1] + dy)
+        self.model.space.move_agent(self, new_position)
 
     def return_to_nest(self):
-        #Dx = self.nest_location[0] - self.pos[0]
-        #Dy = self.nest_location[1] - self.pos[1]
-        dist = math.hypot(self.dx_from_nest, self.dy_from_nest)
+        Dx = self.nest_location[0] - self.pos[0]
+        Dy = self.nest_location[1] - self.pos[1]
+        dist = math.hypot(Dx, Dy)
         if (dist != 0):
-            dx = self.dx_from_nest/dist
-            dy = self.dy_from_nest/dist
+            dx = Dx/dist
+            dy = Dy/dist
+            self.model.space.move_agent(self, (self.pos[0] + dx, self.pos[1] + dy))
+
+    def return_to_food(self):
+        Dx = self.food_position[0] - self.pos[0]
+        Dy = self.food_position[1] - self.pos[1]
+        dist = math.hypot(Dx, Dy)
+        if (dist != 0):
+            dx = Dx/dist
+            dy = Dy/dist
             self.model.space.move_agent(self, (self.pos[0] + dx, self.pos[1] + dy))
 
     def pick_up_food(self, food):
         self.food = 1
+        self.food_position = self.pos
         food.decrease_value()
         if (food.get_value() < 1):
             self.model.space.remove_agent(food)
@@ -55,22 +68,28 @@ class Ant(Agent):
         neighbors = self.model.space.get_neighbors(self.pos, 1)
         for n in neighbors:
             agent_type = type(n).__name__
+
+            # ant collides with a food item, pick up food item
             if (agent_type == "Food"):
-                # ant collides with a food item, pick up food item
                 self.pick_up_food(n)
+
+            # drop food item if it is at a nest
             elif (agent_type == "Nest"):
-                # drop food item if it is at a nest
                 self.food = 0
                 self.remember_nest()
 
+            # site fidelity, returned to location of food
+            elif (self.food_position == self.pos):
+                self.food_position = False
+
     def remember_nest(self):
         self.nest_location = self.pos
-        self.dx_from_nest = 0
-        self.dy_from_nest = 0
 
     def randomly_generate_nest(self):
         if (np.random.rand() < self.model.prob_create_nest):
-            dist = math.hypot(self.dx_from_nest, self.dy_from_nest)
+            Dx = self.nest_location[0] - self.pos[0]
+            Dy = self.nest_location[1] - self.pos[1]
+            dist = math.hypot(Dx, Dy)
             if (dist > self.model.min_dist_between_nests):
                 self.model.generate_nest(self.pos)
                 self.remember_nest()
@@ -102,6 +121,8 @@ class Nest(Agent):
 
 class World(Model):
     def __init__(self, num_agents, num_food, width, height, prob_pheromones, prob_create_nest, min_dist_between_nests):
+        self.width = width
+        self.height = height
         self.center = (width/2, height/2)
         self.num_agents = num_agents
         self.num_food = num_food
