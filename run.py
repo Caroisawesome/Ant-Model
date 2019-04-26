@@ -7,14 +7,15 @@ num_ants = 50
 num_food = 100
 width = 50
 height = 50
+food_distribution = "random" # can be random, or power_law
 
 ## parameters for the ants
 prob_peromones = 0.4
 prob_drop_nest = 0.001
-
+min_dist_between_nests = 15
 
 # initialize model
-model = World(num_ants, num_food, width, height, prob_peromones, prob_drop_nest)
+model = World(num_ants, num_food, width, height, prob_peromones, prob_drop_nest, min_dist_between_nests)
 
 # simulation loop
 num_food_collected = 0

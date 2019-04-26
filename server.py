@@ -11,7 +11,8 @@ model_params = {
     "width": 40,
     "height": 40,
     "prob_pheromones": 0.4,
-    "prob_drop_nest" :0.001
+    "prob_create_nest" :0.005,
+    "min_dist_between_nests": 15
 }
 
 def draw(agent):

@@ -8,9 +8,12 @@ import json
 class Ant(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.model.increment_agent_count()
         self.direction = np.random.rand() * 2 * math.pi
         self.food = 0
         self.nest_location = (0,0)
+        self.dx_from_nest = 0
+        self.dy_from_nest = 0
 
     def set_nest_location(self, loc):
         self.nest_location = loc
@@ -28,59 +31,96 @@ class Ant(Agent):
         dx = np.cos(self.direction)
         dy = np.sin(self.direction)
         self.model.space.move_agent(self, (self.pos[0] + dx, self.pos[1] + dy))
+        self.dy_from_nest += dx
+        self.dy_from_nest += dy
 
     def return_to_nest(self):
-        Dx = self.nest_location[0] - self.pos[0]
-        Dy = self.nest_location[1] - self.pos[1]
-        dist = math.hypot(Dx, Dy)
-        dx = Dx/dist
-        dy = Dy/dist
-        self.model.space.move_agent(self, (self.pos[0] + dx, self.pos[1] + dy))
+        #Dx = self.nest_location[0] - self.pos[0]
+        #Dy = self.nest_location[1] - self.pos[1]
+        dist = math.hypot(self.dx_from_nest, self.dy_from_nest)
+        if (dist != 0):
+            dx = self.dx_from_nest/dist
+            dy = self.dy_from_nest/dist
+            self.model.space.move_agent(self, (self.pos[0] + dx, self.pos[1] + dy))
+
+    def pick_up_food(self, food):
+        self.food = 1
+        food.decrease_value()
+        if (food.get_value() < 1):
+            self.model.space.remove_agent(food)
+            self.model.decrease_food_count()
+
+    # scan current location for food or nest
+    def scan_area(self):
+        neighbors = self.model.space.get_neighbors(self.pos, 1)
+        for n in neighbors:
+            agent_type = type(n).__name__
+            if (agent_type == "Food"):
+                # ant collides with a food item, pick up food item
+                self.pick_up_food(n)
+            elif (agent_type == "Nest"):
+                # drop food item if it is at a nest
+                self.food = 0
+                self.remember_nest()
+
+    def remember_nest(self):
+        self.nest_location = self.pos
+        self.dx_from_nest = 0
+        self.dy_from_nest = 0
+
+    def randomly_generate_nest(self):
+        if (np.random.rand() < self.model.prob_create_nest):
+            dist = math.hypot(self.dx_from_nest, self.dy_from_nest)
+            if (dist > self.model.min_dist_between_nests):
+                self.model.generate_nest(self.pos)
+                self.remember_nest()
 
     def step(self):
         self.move()
-        neighbors = self.model.space.get_neighbors(self.pos, 1)
-        for n in neighbors:
-            if (n.unique_id >= self.model.num_agents):
-                # ant collides with a food item
-                self.food = 1
-                n.decrease_value()
-                if (n.get_value() < 1):
-                    self.model.space.remove_agent(n)
-                    self.model.decrease_food_count()
-            elif (n.unique_id == 0):
-                self.food = 0
+        self.scan_area()
+        self.randomly_generate_nest()
         pass
 
 
 class Food(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.model.increment_agent_count()
         self.value = 1
 
     def decrease_value(self):
         self.value = self.value - 1
-        #if (self.value < 1):
-            #self.model.space.remove_agent(self)
 
     def get_value(self):
         return self.value
 
 class Nest(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, model):
+        unique_id = model.get_agent_count()
         super().__init__(unique_id, model)
+        self.model.increment_agent_count()
 
 class World(Model):
-    def __init__(self, num_agents, num_food, width, height, prob_pheromones, prob_drop_nest):
+    def __init__(self, num_agents, num_food, width, height, prob_pheromones, prob_create_nest, min_dist_between_nests):
         self.center = (width/2, height/2)
         self.num_agents = num_agents
         self.num_food = num_food
+        self.prob_pheromones = prob_pheromones
+        self.prob_create_nest = prob_create_nest
+        self.min_dist_between_nests = min_dist_between_nests
         self.space = ContinuousSpace(width, height, True, 0, 0)
         self.schedule = RandomActivation(self)
-        self.generate_nest()
+        self.running = True
+        self.agent_count = 0
+        self.generate_nest(self.center)
         self.generate_ants()
         self.generate_food()
-        self.running = True
+
+    def increment_agent_count(self):
+        self.agent_count+=1
+
+    def get_agent_count(self):
+        return self.agent_count
 
     def generate_ants(self):
         for i in range(1,self.num_agents):
@@ -89,10 +129,10 @@ class World(Model):
             self.schedule.add(a)
             self.space.place_agent(a, self.center)
 
-    def generate_nest(self):
-        n = Nest(0, self)
+    def generate_nest(self, position):
+        n = Nest(self)
         self.schedule.add(n)
-        self.space.place_agent(n, self.center)
+        self.space.place_agent(n, position)
 
     def generate_food(self):
         for i in range(self.num_agents, self.num_food):
