@@ -50,7 +50,7 @@ class Ant(Agent):
         Dx = self.food_position[0] - self.pos[0]
         Dy = self.food_position[1] - self.pos[1]
         dist = math.hypot(Dx, Dy)
-        if (dist < 2):
+        if (dist < 3):
             self.food_position = False
         elif (dist != 0):
             dx = Dx/dist
@@ -135,6 +135,7 @@ class World(Model):
         self.schedule = RandomActivation(self)
         self.running = True
         self.agent_count = 0
+        self.food_distribution = "clustered"
         self.generate_nest(self.center)
         self.generate_ants()
         self.generate_food()
@@ -158,12 +159,34 @@ class World(Model):
         self.space.place_agent(n, position)
 
     def generate_food(self):
-        for i in range(self.num_agents, self.num_food):
-            f = Food(i, self)
-            x = np.random.rand() * self.space.width
-            y = np.random.rand() * self.space.height
-            self.schedule.add(f)
-            self.space.place_agent(f, (x, y))
+        i = self.num_agents
+        if (self.food_distribution == "clustered"):
+            num_clusters = np.random.randint(3,7)
+            for j in range(num_clusters):
+                x = np.random.rand() * self.space.width
+                y = np.random.rand() * self.space.height
+                size_of_cluster = np.random.randint(1,6)
+                for x1 in range(size_of_cluster):
+                    for y1 in range(4):
+                        f = Food(i, self)
+                        self.schedule.add(f)
+                        self.space.place_agent(f, (x+x1, y+y1))
+                        i += 1
+            for j in range(i, self.num_food):
+                f = Food(j, self)
+                self.schedule.add(f)
+                x = np.random.rand() * self.space.width
+                y = np.random.rand() * self.space.height
+                self.space.place_agent(f, (x, y))
+
+        else:
+            for i in range(self.num_agents, self.num_food):
+                f = Food(i, self)
+                x = np.random.rand() * self.space.width
+                y = np.random.rand() * self.space.height
+                self.schedule.add(f)
+                self.space.place_agent(f, (x, y))
+
 
     def decrease_food_count(self):
         self.num_food = self.num_food - 1
