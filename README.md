@@ -1,4 +1,4 @@
-# Ant-Model
+# Simple Ant Foraging Model
 
 First time setup:
 ```
